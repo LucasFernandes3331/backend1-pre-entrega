@@ -1,0 +1,23 @@
+[
+    {
+    "id": 1,
+    "nombre": "Remera Azul",
+    "descripcion": "Remera de algodón color azul",
+    "precio": 15.99,
+    "stock": 50
+    },
+    {
+    "id": 2,
+    "nombre": "Remera Roja",
+    "descripcion": "Remera de algodón color rojo",
+    "precio": 15.99,
+    "stock": 30
+    },
+    {
+    "id": 3,
+    "nombre": "Pantalón Negro",
+    "descripcion": "Pantalón de jean color negro",
+    "precio": 39.99,
+    "stock": 20
+    }
+]
