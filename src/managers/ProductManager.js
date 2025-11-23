@@ -1,15 +1,16 @@
-const fs = require('fs').promises;
+const fs = require('fs');
+const fsp = fs.promises;
 const path = require('path');
 
 class ProductManager {
     constructor() {
-        this.filePath = path.join(__dirname, '../data/products.json');
+        this.filePath = path.resolve(__dirname, '..', '..', 'data', 'products.json');
         if (!fs.existsSync(this.filePath)) {
-            fs.writeFileSync(this.filePath, JSON.stringify([]));
+            fs.writeFileSync(this.filePath, JSON.stringify([], null, 2));
         }
     }
     async getProducts() {
-        const data = await fs.promises.readFile(this.filePath, 'utf-8');
+        const data = await fsp.readFile(this.filePath, 'utf-8');
         return JSON.parse(data);
     }
     async getProductById(productId) {
@@ -23,7 +24,7 @@ class ProductManager {
             ...productData
         };
         products.push(newProduct);
-        await fs.promises.writeFile(this.filePath, JSON.stringify(products, null, 2));
+        await fsp.writeFile(this.filePath, JSON.stringify(products, null, 2));
         return newProduct;
     }
     async updateProduct(productId, updateData) {
@@ -33,7 +34,7 @@ class ProductManager {
             return null;
         }
         products[productIndex] = { ...products[productIndex], ...updateData };
-        await fs.promises.writeFile(this.filePath, JSON.stringify(products, null, 2));
+        await fsp.writeFile(this.filePath, JSON.stringify(products, null, 2));
         return products[productIndex];
     }
     async deleteProduct(productId) {
@@ -43,7 +44,7 @@ class ProductManager {
             return null;
         }
         const deletedProduct = products.splice(productIndex, 1)[0];
-        await fs.promises.writeFile(this.filePath, JSON.stringify(products, null, 2));
+        await fsp.writeFile(this.filePath, JSON.stringify(products, null, 2));
         return deletedProduct;
     }
 }

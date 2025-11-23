@@ -1,68 +1,50 @@
 const express = require('express');
 const router = express.Router();
-const productsController = require('../managers/ProductManager');
+const ProductManager = require('../managers/ProductManager');
 
-const productManager = new productsController();
+const productManager = new ProductManager();
 
 router.get('/', async (req, res) => {
-    try {
-        const products = await productManager.getProducts();
-        res.status(200).json(products);
-    } catch (error) {
-        res.status(500).json({ error: 'Error fetching products' });
-    }
+    try { const products = await productManager.getProducts(); res.status(200).json(products); }
+    catch (e) { res.status(500).json({ error: 'Error fetching products' }); }
 });
 
 router.get('/:pid', async (req, res) => {
     try {
-        const productId = parseInt(req.params.pid);
-        const product = await productManager.getProductById(productId);
-        if (!product) {
-            return res.status(404).json({ error: 'Product not found' });
-        }
-        res.status(200).json(product);
-    } catch (error) {
-        res.status(500).json({ error: 'Error fetching product' });
-    }
+        const pid = parseInt(req.params.pid);
+        const product = await productManager.getProductById(pid);
+        if (!product) return res.status(404).json({ error: 'Product not found' });
+        res.json(product);
+    } catch (e) { res.status(500).json({ error: 'Error fetching product' }); }
 });
 
 router.post('/', async (req, res) => {
     try {
-        const productData = req.body;
-        const newProduct = await productManager.addProduct(productData);
+        const newProduct = await productManager.addProduct(req.body);
+        const io = req.app.get('io');
+        if (io) io.emit('products', await productManager.getProducts());
         res.status(201).json(newProduct);
-    } catch (error) {
-        res.status(500).json({ error: 'Error adding product' });
-    }
+    } catch (e) { res.status(500).json({ error: 'Error adding product' }); }
 });
 
 router.put('/:pid', async (req, res) => {
     try {
-        const productId = parseInt(req.params.pid);
-        const updateData = req.body;
-        const productUpdate = await productManager.updateProduct(productId, updateData);
-        if (!productUpdate) {
-            return res.status(404).json({ error: 'Product not found' });
-        }
-        const updateProduct = await productManager.updateProduct(productId, updateData);
-        res.status(200).json(updateProduct);
-    } catch (error) {
-        res.status(500).json({ error: 'Error updating product' });
-    }
+        const pid = parseInt(req.params.pid);
+        const updated = await productManager.updateProduct(pid, req.body);
+        if (!updated) return res.status(404).json({ error: 'Product not found' });
+        const io = req.app.get('io'); if (io) io.emit('products', await productManager.getProducts());
+        res.json(updated);
+    } catch (e) { res.status(500).json({ error: 'Error updating product' }); }
 });
 
 router.delete('/:pid', async (req, res) => {
     try {
-        const productId = parseInt(req.params.pid);
-        const deletedProduct = await productManager.deleteProduct(productId);
-        if (!deletedProduct) {
-            return res.status(404).json({ error: 'Product not found' });
-        }
-        res.status(200).json(deletedProduct);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Error deleting product' });
-    }
+        const pid = parseInt(req.params.pid);
+        const deleted = await productManager.deleteProduct(pid);
+        if (!deleted) return res.status(404).json({ error: 'Product not found' });
+        const io = req.app.get('io'); if (io) io.emit('products', await productManager.getProducts());
+        res.json(deleted);
+    } catch (e) { res.status(500).json({ error: 'Error deleting product' }); }
 });
 
 module.exports = router;

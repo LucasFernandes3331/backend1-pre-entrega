@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos</title>
+</head>
+
+<body>
+    <h1>Productos Disponibles</h1>
+    <p>Busca y agrega al carrito tus elecciones:</p>
+    <form id="addForm">
+        <input name="nombre" placeholder="nombre" required />
+        <input name="descripcion" placeholder="descripcion" />
+        <input name="precio" placeholder="precio" type="number" step="0.01" required />
+        <input name="stock" placeholder="stock" type="number" required />
+        <button type="submit">Agregar</button>
+    </form>
+
+    <p>PRENDAS DISPONIBLES CON STOCK LIMITADO:</p>
+    <ul id="productsList"></ul>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        socket.on('products', (products) => {
+            const ul = document.getElementById('productsList');
+            ul.innerHTML = '';
+            products.forEach(p => {
+                const li = document.createElement('li');
+                li.innerText = `${p.id} - ${p.nombre} - $${p.precio}`;
+                ul.appendChild(li);
+            });
+        });
+    </script>
+</body>
+
+</html>

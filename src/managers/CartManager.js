@@ -1,11 +1,12 @@
-const fs = require('fs').promises;
+const fs = require('fs');
+const fsp = fs.promises;
 const path = require('path');
 
 class CartManager {
     constructor() {
-        this.filePath = path.join(__dirname, '../data/carts.json');
+        this.filePath = path.resolve(__dirname, '..', '..', 'data', 'carts.json');
         if (!fs.existsSync(this.filePath)) {
-            fs.writeFileSync(this.filePath, JSON.stringify([]));
+            fs.writeFileSync(this.filePath, JSON.stringify([], null, 2));
         }
     }
 
@@ -16,11 +17,11 @@ class CartManager {
             products: []
         };
         carts.push(newCart);
-        await fs.promises.writeFile(this.filePath, JSON.stringify(carts, null, 2));
+        await fsp.writeFile(this.filePath, JSON.stringify(carts, null, 2));
         return newCart;
     }
     async getCarts() {
-        const data = await fs.promises.readFile(this.filePath, 'utf-8');
+        const data = await fsp.readFile(this.filePath, 'utf-8');
         return JSON.parse(data);
     }
     async getCartById(cartId) {
@@ -39,7 +40,7 @@ class CartManager {
         } else {
             cart.products.push({ productId, quantity: 1 });
         }
-        await fs.promises.writeFile(this.filePath, JSON.stringify(carts, null, 2));
+        await fsp.writeFile(this.filePath, JSON.stringify(carts, null, 2));
         return cart;
     }
 }
