@@ -1,51 +1,47 @@
-const fs = require('fs');
-const fsp = fs.promises;
-const path = require('path');
+const Product = require('../models/Product');
 
 class ProductManager {
-    constructor() {
-        this.filePath = path.resolve(__dirname, '..', '..', 'data', 'products.json');
-        if (!fs.existsSync(this.filePath)) {
-            fs.writeFileSync(this.filePath, JSON.stringify([], null, 2));
+    async getProducts(limit = 10, page = 1, sort = null, query = null, value = null) {
+        const filter = {};
+        if (query && value) {
+            if (query === 'categoria') filter.categoria = value;
+            if (query === 'disponible') filter.disponible = value === 'true';
         }
-    }
-    async getProducts() {
-        const data = await fsp.readFile(this.filePath, 'utf-8');
-        return JSON.parse(data);
-    }
-    async getProductById(productId) {
-        const products = await this.getProducts();
-        return products.find(product => product.id === productId);
-    }
-    async addProduct(productData) {
-        const products = await this.getProducts();
-        const newProduct = {
-            id: products.length + 1,
-            ...productData
+        const options = {
+            limit: parseInt(limit),
+            page: parseInt(page),
+            sort: sort ? { precio: sort === 'asc' ? 1 : -1 } : null
         };
-        products.push(newProduct);
-        await fsp.writeFile(this.filePath, JSON.stringify(products, null, 2));
-        return newProduct;
+        const result = await Product.paginate(filter, options);
+        return {
+            status: 'success',
+            payload: result.docs,
+            totalPages: result.totalPages,
+            prevPage: result.prevPage,
+            nextPage: result.nextPage,
+            page: result.page,
+            hasPrevPage: result.hasPrevPage,
+            hasNextPage: result.hasNextPage,
+            prevLink: result.hasPrevPage ? `/api/products?limit=${limit}&page=${result.prevPage}&sort=${sort}&query=${query}&value=${value}` : null,
+            nextLink: result.hasNextPage ? `/api/products?limit=${limit}&page=${result.nextPage}&sort=${sort}&query=${query}&value=${value}` : null
+        };
     }
-    async updateProduct(productId, updateData) {
-        const products = await this.getProducts();
-        const productIndex = products.findIndex(product => product.id === productId);
-        if (productIndex === -1) {
-            return null;
-        }
-        products[productIndex] = { ...products[productIndex], ...updateData };
-        await fsp.writeFile(this.filePath, JSON.stringify(products, null, 2));
-        return products[productIndex];
+
+    async getProductById(id) {
+        return await Product.findById(id);
     }
-    async deleteProduct(productId) {
-        const products = await this.getProducts();
-        const productIndex = products.findIndex(product => product.id === productId);
-        if (productIndex === -1) {
-            return null;
-        }
-        const deletedProduct = products.splice(productIndex, 1)[0];
-        await fsp.writeFile(this.filePath, JSON.stringify(products, null, 2));
-        return deletedProduct;
+
+    async addProduct(data) {
+        const product = new Product(data);
+        return await product.save();
+    }
+
+    async updateProduct(id, data) {
+        return await Product.findByIdAndUpdate(id, data, { new: true });
+    }
+
+    async deleteProduct(id) {
+        return await Product.findByIdAndDelete(id);
     }
 }
 
